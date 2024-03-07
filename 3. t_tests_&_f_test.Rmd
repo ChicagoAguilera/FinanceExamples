@@ -1,0 +1,78 @@
+---
+title: "3. T-Tests & F-Test"
+output: html_notebook
+---
+
+This example notebook will explore the most common forms of t-test and differentiate between them. It is also the first example set to use R instead of python. Going forward, there will be a mix of R and python used. The four forms of t-test explored in this example are:<br><br>
+3.0) Dataset
+3.1) One sample t-test<br>
+3.2) Two sample t-test<br>
+3.3) Paired t-test<br>
+3.4) F-test<br>
+
+
+<h2>3.0) Dataset</h2>
+In this example we will be using data from the popular iris dataset that comes built in with R. The dataset has 150 observations of 5 variables. 
+```{r}
+data = data("iris")
+head(data)
+```
+
+<h2>3.1) One-Sample T-Test</h2>
+One-sample tests are designed to test if there is a significant difference between a known population mean and a sample mean. This is done by comparing the population and sample means while considering variability. The formula for a one-sample t-test can be seen below:
+
+$$ t = \frac{{\bar{x} - \mu}}{{\frac{s}{\sqrt{n}}}} $$
+Where x-bar is the sample mean, mu is the population mean, s is the sample standard deviation and n is the number of observations in the sample.
+
+In our example, we will randomly select 20 records without replacement from the dataset (the population for the purpose of this example) looking specifically at sepal length. While it would be possible to plug in all values, we would then need to determine critical values and in practice this is more typically done via package.
+
+In this instance we expect the t-test to show there is no significant difference between the two means, as one has been sampled from the other. 
+
+```{r}
+one_sample_df <- iris[sample(1:nrow(iris),20, replace=FALSE),]
+
+t.test(one_sample_df$Sepal.Length, mu = mean(iris$Sepal.Length))
+
+```
+The p-value for the t-test shows that the null hypothesis cannot be rejected, and that there is no statistical difference between the mean of the sample and population sepal length. 
+
+<h2>3.2) Two-Sample T-Test</h2>
+The two-sample test is used when investigating if there is a significant difference between two groups that may have different variances. The formula for is as follows, where all symbols are the same from the one-sample test:
+
+$$ t = \frac{\bar{x}_1 - \bar{x}_2}{\sqrt{\frac{s^{2}_{1}}{n_{1}}+\frac{s^{2}_{2}}{n_{2}}}} $$
+For this example, the variable in question will again be the sepal length. The two samples will be the setosa and versicolor species. We would expect that there is a significant difference between the means in this instance because we are looking at the sepal width of different species.
+
+```{r}
+two_sample_setosa_set = iris[iris$Species == 'setosa',]
+two_sample_versicolor_set = iris[iris$Species == 'versicolor',]
+
+t.test(two_sample_setosa_set$Sepal.Length, two_sample_versicolor_set$Sepal.Length)
+```
+Indeed, we find that the extremely small p-value tells us that these two samples have significantly different mean values. 
+
+<h2>3.3) Paired t-test</h2>
+Paired t-tests are used to investigate the significance of differences between the mean of related samples. Typically, they are employed in a "before and after" scenario. The formula for paired t-tests is as follows:
+
+$$ t = \frac{{\bar{x}_D}}{{s_D / \sqrt{n}}} $$
+Where x-bar-D is the mean difference between the pair, S-D is the standard deviation of the difference between the pairs, and n in the number of pairs. 
+
+For our example, we will say that we have tried a new fertiliser on the plants, and it has caused sepal length to increase by 2%. We can then use a paired t-test to determine if this increase is statistically significant. We would expect that it 
+
+```{r}
+paired_sample_before = iris$Sepal.Length
+paired_sample_after = iris$Sepal.Length * 1.02
+
+t.test(paired_sample_before, paired_sample_after, paired=TRUE)
+```
+In this case, a 2% increase across the board means that there is a statistically significant difference between the two samples. When considering the formula though, it is worth noting that a 2% increase on average, where the differences vary from observation to observation would likely produce a different result.
+
+<h2>3.4) F-Tests</h2>
+While significant differences in the mean are evaluated using t-tests, a popular accompanying test, particularly to the two-sample and paired t-test approaches are f-tests, which are used to look for significant differences in variance. The f-test formula is quite straightforward and as follows:
+
+$$F = \frac{{s_1^2}}{{s_2^2}}$$
+Following on from the two-sample test, we will use an f-test to look at the difference in variance bewteen setosa and versicolor variance sepal length. 
+
+```{r}
+var.test(two_sample_setosa_set$Sepal.Length, two_sample_versicolor_set$Sepal.Length)
+```
+In this instance we see that there is also a significant difference between the variance of setosa and versicolo sepal length. When analysing distributions, it is important to look at both mean and variance and having done so we now more deeply understand the differences - and that there are differences at all - between the samples. 
